@@ -2,3 +2,11 @@ todo:
 
 must sign after a go build
 codesign -f -s - ./grokMusic6
+
+
+Pick up where grok says:
+Your Question: 
+“CanvasObject: staffArea, // What exactly is this CanvasObject: staffArea, syntax doing ??”
+
+Answer:
+
