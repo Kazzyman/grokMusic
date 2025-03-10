@@ -29,6 +29,8 @@ type MarkedNote struct {
 }
 
 func main() { // ctrl-M to navigate to matching brace. main is some 300 lines long!
+	about_app() // show SLOC on the terminal; and, maintain a log file: musicAppLog.txt where those LOC figures are tracked. 
+	
 	// Initialize Fyne app  -- app.___ is a Fyne object.
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Find the Note") // create the app window and title it.
