@@ -1,3 +1,4 @@
-Polish: Finish the size comment and explain why transparent
+todo: 
 
-GoLand sometimes moves my comment way over to the right, how can I make it stop doing that? 
+must sign after a go build
+codesign -f -s - ./grokMusic6

@@ -13,6 +13,8 @@ import (
 	"math/rand"
 )
 
+// @formatter:off
+
 // NotePosition represents a note's position on the staff
 type NotePosition struct {
 	Pitch string  // such as "A5", "G5", "F5", or "E5"
@@ -27,8 +29,8 @@ type MarkedNote struct {
 }
 
 func main() { // ctrl-M to navigate to matching brace. main is some 300 lines long!
-	// Initialize Fyne app
-	myApp := app.New()                           // app.___ is a Fyne object.
+	// Initialize Fyne app  -- app.___ is a Fyne object.
+	myApp := app.New()
 	myWindow := myApp.NewWindow("Find the Note") // create the app window and title it.
 	myWindow.Resize(fyne.NewSize(1065, 980))     // I made these a bit smaller. Resize is in Fyne package.
 
@@ -52,11 +54,11 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 		len(notes): Sets the length of the slice to 24 (since len(notes) is 24).
 		Result::: notePositions is a slice of 24 NotePosition elements (structs), pre-allocated and initialized with zero values for the
 		::: type (Pitch: "", Y: 0.0 for each element).
-
 	*/
 
 	// Load the empty notePositions slice:
-	// Calculate and set the Y-axis coordinates for each note to match the staff layout. We could have hardcoded each, but calculating them is both fun and less error-prone!
+	// Calculate and set the Y-axis coordinates for each note to match the staff layout. We could have hardcoded each, but calculating ...
+	// ... them is both fun and less error-prone!
 	for i, note := range notes { // "i" will become 0 through 23
 		if i < 11 { // for the first 11 lines/notes, Treble (A5 to E4), calculate and assign each note its position on the Y-axis.
 			notePositions[i] = NotePosition{Pitch: note, Y: float32(40 + i*30)} // here "i" is 0 for the first iteration...
@@ -93,7 +95,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	// Pick a note, randomly, for the player to place at each of its proper locations on the Grand Staff
 	// rand.Seed(time.Now().UnixNano()) // deprecated, not needed
 	targetNoteLetter := []string{"C", "D", "E", "F", "G", "A", "B"}[rand.Intn(7)] // [rand.Intn(7)] uses a random number as index to the slice.
-	var targetPositions []NotePosition                                            // NotePosition is a custom type, and targetPositions is then a new empty slice of those types.
+	var targetPositions []NotePosition  // NotePosition is a custom type, and targetPositions is then a new empty slice of those types.
 	// was: targetPositions := []NotePosition{} // NotePosition is a custom type, and targetPositions is then a new empty slice of those types.
 	// var is just a declaration (nil slice), while := initializes an empty slice. Functionally identical here since we append right away.
 	for _, pos := range notePositions { // notePositions is a slice of 24 NotePosition elements (structs); each now loaded with a ...
@@ -101,11 +103,11 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 		// .. was calculated above. And, we toss the unneeded range position via the built-in _ bit bin variable -- “blank identifier” (Go term for _).
 		if pos.Pitch[0:1] == targetNoteLetter { // targetNoteLetter could be any of C to B, as per the randomly indexed slice above. And ...
 			/*
-				pos could be, e.g., {Pitch: "A5", Y: 40}  pos.Pitch returns the Pitch field: "A5"; Whereas pos.Y would return the Y field: 40.
-				pos.Pitch is a string like "A5". And [0:1]: is a slice expression applied to that string. In Go, strings are sliceable, meaning
-					you can always extract a substring using the syntax string[start:end]
-					e.g., s[start:end] extracts a portion of s from index start (inclusive) to index end (exclusive).
-					::: So, pos.Pitch[0:1] trims off the octave identifier found in each NotePosition struct; turning things like "C4" to just plain "C".
+			pos could be, e.g., {Pitch: "A5", Y: 40}  pos.Pitch returns the Pitch field: "A5"; Whereas pos.Y would return the Y field: 40.
+			pos.Pitch is a string like "A5". And [0:1]: is a slice expression applied to that string. In Go, strings are sliceable, meaning that
+			you can always extract a substring using the syntax string[start:end]
+			e.g., s[start:end] extracts a portion of s from index start (inclusive) to index end (exclusive).
+			::: So, pos.Pitch[0:1] trims off the octave identifier found in each NotePosition struct; turning things like "C4" to just plain "C".
 			*/
 			targetPositions = append(targetPositions, pos) // load/add/append pos to the targetPositions slice. pos having been found by range.
 			// Appending: Collects all NotePosition structs where the note letter matches (e.g., all "C" positions).
@@ -176,7 +178,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	// ::: Track player's marked notes—where they’ve placed circles.
 	markedNotes := []MarkedNote{} // empty slice declaration using literal {}
 	// could also do a ::: var markedNotes []MarkedNote // var is just a declaration (nil slice), while := initializes an empty slice.
-	//  it’s for storing MarkedNote structs from clicks.
+	// it’s for storing MarkedNote structs from clicks.
 
 	// Create staff container (a fyne object to hold staff lines and notes)
 	staffContainer := container.NewWithoutLayout(lines...)
@@ -185,7 +187,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 
 	// Handle mouse clicks with a tappable rectangle (more fyne objects)
 	staffArea := canvas.NewRectangle(&color.Transparent) // invisible overlay for detecting mouse clicks
-	
+
 	staffArea.Resize(fyne.NewSize(1000, 900)) // same dimensions as staffCanvas.Resize(fyne.NewSize(
 	// ensuring the tappable area covers the entire staff drawing surface -- not the window size (1065x980), but the canvas within it.
 
@@ -236,8 +238,8 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 			circle.Move(fyne.NewPos(noteX-10, closest.Y-10)) // Center circle on position
 			markedNotes = append(markedNotes, MarkedNote{Circle: circle, X: noteX, Y: closest.Y})
 			// staffContainer.AddObject(circle)  // AddObject is deprecated. ?? what could go in its place ???
-			staffContainer.Add(circle)                                                   // Add replaces deprecated AddObject—keeps it modern!
-			staffContainer.Refresh()                                                     // staffContainer is an instance of container.NewWithoutLayout(lines...) , done above.
+			staffContainer.Add(circle)  // Add replaces deprecated AddObject—keeps it modern!
+			staffContainer.Refresh()   // staffContainer is an instance of container.NewWithoutLayout(lines...) , done above.
 			fmt.Printf("Marked %s at X=%.0f, Y=%.0f\n", closest.Pitch, noteX, closest.Y) // debugging log to terminal.
 		},
 	}
