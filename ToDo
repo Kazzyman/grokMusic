@@ -1,6 +1,3 @@
-I scared myself with an issue with GOROOT, but that is now solved. But that last update intended to fix the issue of multiple 
-notes at the same position resulting in the "extra" taps being counted as "wrong position" is still with us.  or not???
+Polish: Finish the size comment and explain why transparent
 
-could ask grok again past 11:55pm 
-
-So, I now think we are done here. 
+GoLand sometimes moves my comment way over to the right, how can I make it stop doing that? 
