@@ -175,6 +175,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 
 	// ::: Track player's marked notes—where they’ve placed circles.
 	markedNotes := []MarkedNote{} // empty slice declaration using literal {}
+	// could also do a ::: var markedNotes []MarkedNote // var is just a declaration (nil slice), while := initializes an empty slice.
 	//  it’s for storing MarkedNote structs from clicks.
 
 	// Create staff container (a fyne object to hold staff lines and notes)
@@ -183,8 +184,10 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	staffContainer.Move(fyne.NewPos(100, 100))     // meant to center the canvas (staff container) in the window
 
 	// Handle mouse clicks with a tappable rectangle (more fyne objects)
-	staffArea := canvas.NewRectangle(&color.Transparent)
+	staffArea := canvas.NewRectangle(&color.Transparent) // invisible overlay for detecting mouse clicks
+	
 	staffArea.Resize(fyne.NewSize(1000, 900)) // same dimensions as staffCanvas.Resize(fyne.NewSize(
+	// ensuring the tappable area covers the entire staff drawing surface -- not the window size (1065x980), but the canvas within it.
 
 	// Add tap handler (this is a big one, approximately 50 lines)
 	staffAreaTapped := &TappableCanvas{ // &TappableCanvas is a pointer address to a custom type, i.e., ...
