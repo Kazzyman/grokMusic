@@ -1,0 +1,85 @@
+Fyne’s Layout Magic
+Here’s the culprit: Fyne’s container/layout system.
+container.NewWithoutLayout:
+For staffContainer, this means its children (lines, staffAreaTapped) use absolute positioning (e.g., line.Position1, circle.Move()). But staffContainer itself is still sized/positioned by its parent (content’s VBox).
+
+container.NewVBox:
+Stacks instruction, staffContainer, HBox, and feedback vertically. Width = window width (1000px); height = sum of children’s MinSize() or explicit sizes (if unconstrained).
+
+container.NewHBox:
+Aligns checkButton and resetButton horizontally, splitting the 1000px width.
+
+When you call Resize() or Move() on an object inside a layout-managed container, the layout recalculates everything on render (parentWindow.ShowAndRun()), overriding your calls unless:
+The layout respects manual sizes (e.g., layout.NewGridLayout() might).
+
+You bypass layouts entirely (rare in Fyne apps).
+
+Root Cause: Layouts trump manual positioning here. VBox and HBox are the puppet masters.
+
+Implication: These lines are vestigial—safe to remove unless you change the layout approach.
+
+::: Updated Code Suggestion
+Remove the no-ops and comment why:
+
+staffContainer := container.NewWithoutLayout(lines...)
+// No Resize/Move—VBox in content overrides these!
+/*
+	// staffContainer.Resize(fyne.NewSize(1000, 1000)) // ::: Had no effect !!!
+	// staffContainer.Move(fyne.NewPos(100, 100))     // meant to center the canvas (staff container) in the window // ::: Had no effect !!!
+	/*
+	::: NewWithoutLayout: This creates a container where you control object positions—but only for its children (like lines, staffAreaTapped). ...
+	... The container itself is still subject to its parent’s layout. Parent Layout: staffContainer is inside content (a container.NewVBox()), which is in mainContainer 
+	(a container.New(layout.NewVBoxLayout())). VBoxLayout stacks items vertically and sizes them to fit the available width (here, the window’s 1000px), ignoring your Resize() and Move().
+	Override: When parentWindow.SetContent(mainContainer) renders, VBoxLayout says, “I decide your size and position, staffContainer—not you!” It stretches staffContainer to the 
+	window’s width (1000px) and positions it based on its vertical stack order.
+	*/
+*/
+
+instruction := widget.NewLabel(fmt.Sprintf("Click all %s notes...", targetNoteLetter))
+// No Resize—VBox sets size based on text!
+	// instruction.Resize(fyne.NewSize(1000, 100)) // ::: Had no effect !!!
+	/*
+	NewVBox Control: instruction is the first child of content (container.NewVBox()). VBox sizes its children to fit the container’s width (1000px from the window) and 
+	sets their height based on preferred size (here, the label’s text height).
+	Widget Behavior: widget.Label has an intrinsic size (MinSize()) based on its text content. Your Resize(1000, 100) is overridden by VBox, which respects MinSize() unless forced otherwise.
+	No Manual Override: Fyne widgets in layouts ignore Resize() unless the layout explicitly allows it (e.g., with padding or spacers).
+	*/
+	
+checkButton := widget.NewButton("Check", func() { ... })
+// No Resize—HBox in content dictates button size!
+
+resetButton := widget.NewButton("New Game", func() { ... })
+// resetButton.Resize(fyne.NewSize(200, 100)) // dimensions of "New Game" button. // ::: Had no effect !!!, same reason as above
+
+	// checkButton.Resize(fyne.NewSize(200, 100)) // Check button’s footprint. // ::: Had no effect !!!
+	/*
+	NewHBox Control: Both buttons are in container.NewHBox(checkButton, resetButton), a horizontal box layout inside content’s VBox.
+	HBox Behavior: HBox distributes available width (1000px from VBox) among its children, respecting their MinSize() (text + padding for buttons). ...
+	... Your Resize(200, 100) is ignored—HBox sets the size.
+	Shared Space: The buttons split the 1000px width (e.g., ~500px each if equal), with heights from MinSize() (e.g., ~40px for button text).
+	*/
+
+
+Why It Still Works
+staffContainer: Sized by VBox to 1000x1000-ish (staff height + padding), matching staffCanvas and staffArea (both Resize(1000, 1000)—those do work since they’re CanvasObjects inside NewWithoutLayout).
+
+instruction: Fits naturally at 1000px wide, text height.
+
+Buttons: HBox gives them equal footing, functional without your Resize().
+
+Could They Ever Work?
+Yes, if you ditch layouts:
+No Layout: Make staffContainer the window’s sole content:
+
+parentWindow.SetContent(staffContainer)
+staffContainer.Resize(fyne.NewSize(1000, 1000))
+staffContainer.Move(fyne.NewPos(100, 100))
+
+Now they’d shift and size—but you’d lose instruction, buttons, and feedback.
+
+Custom Layout: Write a layout.Layout to respect manual Resize()/Move()—overkill here.
+
+For instruction and buttons, you’d need layout.NewMaxLayout() or spacers to force sizes, but VBox/HBox are simpler for your UI.
+
+Takeaway: Fyne’s layouts are bossy—CanvasObject primitives (staffCanvas, staffArea) obey Resize(), but containers/widgets bow to their layout parents.
+

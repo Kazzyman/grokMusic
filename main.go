@@ -14,27 +14,28 @@ import (
 )
 
 // @formatter:off
+// GoLand is configured so as to highlight (in pink) all characters on a line to the right of three colons, e.g. ::: this is pink
 
-// NotePosition represents a note's position on the staff
+// NotePosition represents a note's position on the staff; implements interface
 type NotePosition struct {
 	Pitch string  // such as "A5", "G5", "F5", or "E5"
 	Y     float32 // Y-coordinate on the canvas for this note
 }
 
-// MarkedNote tracks a placed note for possible retraction in case of player error
+// MarkedNote tracks a placed note for possible retraction in case of player error; implements interface
 type MarkedNote struct {
 	Circle *canvas.Circle
 	X      float32
 	Y      float32
 }
 
-func main() { // ctrl-M to navigate to matching brace. main is some 300 lines long!
+func main() { 
 	about_app() // show SLOC on the terminal; and, maintain a log file: musicAppLog.txt where those LOC figures are tracked. 
 	
 	// Initialize Fyne app  -- app.___ is a Fyne object.
-	myApp := app.New()
-	myWindow := myApp.NewWindow("Find the Note") // create the app window and title it.
-	myWindow.Resize(fyne.NewSize(1065, 980))     // I made these a bit smaller. Resize is in Fyne package.
+	RicksFirstGUI := app.New()
+	parentWindow := RicksFirstGUI.NewWindow("Rick's Find the Note game") // create the app window and title it.
+	parentWindow.Resize(fyne.NewSize(1000, 1000)) 
 
 	// Define the Grand Staff notes (A5 to F2)
 	notes := []string{
@@ -43,13 +44,8 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 		"A3", "G3", "F3", "E3", "D3", "C3", "B2", "A2", "G2", "F2", // Bass
 	}
 	notePositions := make([]NotePosition, len(notes))
-	// notePositions := make([]NotePosition, 24) // is an equivalent form, since len(notes) = 24
 	/*
-					type NotePosition struct {
-					    Pitch string // such as "A5", "G5", "F5", or "E5"
-					    Y     float32 // Y-coordinate on the canvas for this note
-					}
-				make is a built-in function used to create and initialize certain built-in types: slices, maps, and channels. When
+	make is a built-in function used to create and initialize certain built-in types: slices, maps, and channels. When
 		you see make([]Type, length), it creates a slice of type []Type with a specified length (and optionally a capacity, if provided
 		as a third argument).
 		[]NotePosition: Specifies the slice type—elements are NotePosition structs.
@@ -64,7 +60,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	for i, note := range notes { // "i" will become 0 through 23
 		if i < 11 { // for the first 11 lines/notes, Treble (A5 to E4), calculate and assign each note its position on the Y-axis.
 			notePositions[i] = NotePosition{Pitch: note, Y: float32(40 + i*30)} // here "i" is 0 for the first iteration...
-			// ... e.g., when i=0, Y=40 A5; i=1, Y=70 G5, i=2, Y=100 F5 // ::: so F5 is at 100 here too!
+			// ... e.g., when i=0, Y=40 A5; i=1, Y=70 G5, i=2, Y=100 F5
 			// when i=3, 40+(3*30)=130 E5 -- i=4 160 D5 -- i=5 190 C5 -- i=6 220 B4 -- i=7 250 A4 -- i=8 280 G4 -- i=9 310 F4 -- i=10 Y= 340 E4
 		} else if i < 13 { // for the next two lines/notes, (D4 and C4), calculate and assign their positions on the Y-axis.
 			notePositions[i] = NotePosition{Pitch: note, Y: float32(370 + (i-11)*30)}
@@ -95,7 +91,6 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	}
 
 	// Pick a note, randomly, for the player to place at each of its proper locations on the Grand Staff
-	// rand.Seed(time.Now().UnixNano()) // deprecated, not needed
 	targetNoteLetter := []string{"C", "D", "E", "F", "G", "A", "B"}[rand.Intn(7)] // [rand.Intn(7)] uses a random number as index to the slice.
 	var targetPositions []NotePosition  // NotePosition is a custom type, and targetPositions is then a new empty slice of those types.
 	// was: targetPositions := []NotePosition{} // NotePosition is a custom type, and targetPositions is then a new empty slice of those types.
@@ -131,15 +126,14 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	fmt.Printf("Target %s notes: %v\n", targetNoteLetter, targetPositions) // log activity to the console/terminal.
 
 	// Create canvas for the staff: canvas.___ is a fyne object. Compare Fyne calls near top of main.
-	staffCanvas := canvas.NewRectangle(&color.RGBA{R: 255, G: 255, B: 255, A: 255})
-	staffCanvas.Resize(fyne.NewSize(1000, 900)) // size of actual app window. canvas is (1065, 980)
-	// obviously, the canvas fits inside the window
+	staffCanvas := canvas.NewRectangle(&color.RGBA{R: 25, G: 200, B: 25, A: 155})
+	staffCanvas.Resize(fyne.NewSize(1000, 1000)) // Needed to apply the colors specified on the previous line; default is very dark grey. 
 
 	// Draw the Grand Staff
 	lines := []fyne.CanvasObject{staffCanvas}
 	// Treble staff (E4 bottom, F5 top)
 	for i := 0; i < 5; i++ {
-		y := float32(340 - i*60) // E4 (340), G4 (280), B4 (220), D5 (160), F5 (100) // F5 at 100 ?? i=9 Y=310  -- i=9 310 F5 --  ???
+		y := float32(340 - i*60) // E4 (340), G4 (280), B4 (220), D5 (160), F5 (100) // F5 at 100 ?? i=9 Y=310  -- i=9 310 F5 -- 
 		// when i=4, 370 - i*60 = 130
 		line := canvas.NewLine(&color.Black)
 		line.Position1 = fyne.NewPos(100, y)
@@ -147,10 +141,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 		line.StrokeWidth = 2
 		lines = append(lines, line)
 	}
-	/*
-		i=0 Y=340 the E4 line bottom line of treble clef.  i=1 280, 2 220, 3 160, 4 100 (for i := 0; i < 5; i++ {)
-		Matches the code (340 - i*60), but note these don’t align perfectly with notePositions (e.g., F5 is 100 here, but 130 in notePositions). Intentional offset?
-	*/
+
 	// Bass staff (G2 bottom, A3 top)
 	for i := 0; i < 5; i++ {
 		y := float32(760 - i*60) // G2 (760), B2 (700), D3 (640), F3 (580), A3 (520)
@@ -177,21 +168,19 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 		lines = append(lines, ledger)
 	}
 
-	// ::: Track player's marked notes—where they’ve placed circles.
+	// ::: Track the player's marked notes — places where they’ve placed circles/dots.
 	markedNotes := []MarkedNote{} // empty slice declaration using literal {}
-	// could also do a ::: var markedNotes []MarkedNote // var is just a declaration (nil slice), while := initializes an empty slice.
+	// could also have done a: var markedNotes []MarkedNote // var is just a declaration (nil slice), while := initializes an empty slice.
 	// it’s for storing MarkedNote structs from clicks.
 
 	// Create staff container (a fyne object to hold staff lines and notes)
 	staffContainer := container.NewWithoutLayout(lines...)
-	staffContainer.Resize(fyne.NewSize(1000, 900)) // same dimensions as staffCanvas.Resize(fyne.NewSize(
-	staffContainer.Move(fyne.NewPos(100, 100))     // meant to center the canvas (staff container) in the window
+	// No Resize/Move statement for staffContainer — VBox in content overrides these!
 
 	// Handle mouse clicks with a tappable rectangle (more fyne objects)
 	staffArea := canvas.NewRectangle(&color.Transparent) // invisible overlay for detecting mouse clicks
 
-	staffArea.Resize(fyne.NewSize(1000, 900)) // same dimensions as staffCanvas.Resize(fyne.NewSize(
-	// ensuring the tappable area covers the entire staff drawing surface -- not the window size (1065x980), but the canvas within it.
+	staffArea.Resize(fyne.NewSize(1000, 1000)) // Needed, makes the tappable area cover the entire staff drawing surface
 
 	// Add tap handler (this is a big one, approximately 50 lines). This is our custom tap-handling callback func -- staffAreaTapped is the instance (via the receiver t in Tapped())
 	staffAreaTapped := &TappableCanvas{ // &TappableCanvas is a pointer address to a custom type: TappableCanvas extends CanvasObject to handle taps (see below)
@@ -264,9 +253,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 				}
 			}
 
-			// Snap to nearest note position
-			/*
-			// Snap to nearest note position—finds the closest Y from notePositions for that perfect note placement!
+			// Snap to nearest note position — finds the closest Y from notePositions for that perfect note placement!
 			closest := notePositions[0] // Start with A5 (Y=40) as our guess.
 			minDiff := abs(clickY - closest.Y) // How far’s the click from A5?
 			for _, pos := range notePositions { // Loop through all 24 notes (A5 to F2).
@@ -276,30 +263,14 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 			        closest = pos // New champ—e.g., click Y=153.7 snaps to D5 (Y=160).
 			    }
 			}
-			 */
-			closest := notePositions[0]
-			minDiff := abs(clickY - closest.Y)
-			for _, pos := range notePositions {
-				diff := abs(clickY - pos.Y)
-				if diff < minDiff {
-					minDiff = diff
-					closest = pos
-				}
-			}
+
 		/*
 			This is a classic “nearest neighbor” algorithm—simple yet effective. It’s forgiving (no threshold—always snaps), but 
 			you could add if minDiff < 20 to limit snapping range if desired.
 		*/
 			// Determine X position: ledger (center) or staff (right)
 			var noteX float32
-			/* Pick X: ledger center (500) for A5/C4, else staff mid-point (300)—keeps notes visually tidy!
-			var noteX float32
-			if closest.Pitch == "A5" || closest.Pitch == "C4" {
-			    noteX = 500 // Ledger sweet spot (400-600 range).
-			} else {
-			    noteX = 300 // Staff zone (between left 100 and ledger 400).
-			}
-			 */
+
 			if closest.Pitch == "A5" || closest.Pitch == "C4" {
 				noteX = 500 // Center of ledger lines (400-600)
 			} else {
@@ -308,10 +279,9 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 
 			// Add a red circle/dot
 			circle := canvas.NewCircle(&color.RGBA{R: 255, G: 0, B: 0, A: 255})
-			circle.Resize(fyne.NewSize(20, 20))
+			circle.Resize(fyne.NewSize(20, 20)) // Needed to apply the colors specified on the previous line; default appears to be invisible ???
 			circle.Move(fyne.NewPos(noteX-10, closest.Y-10)) // Center circle on position
 			markedNotes = append(markedNotes, MarkedNote{Circle: circle, X: noteX, Y: closest.Y})
-			// staffContainer.AddObject(circle)  // AddObject is deprecated. ?? what could go in its place ???
 			staffContainer.Add(circle)  // Add replaces deprecated AddObject—keeps it modern!
 			staffContainer.Refresh()   // staffContainer is an instance of container.NewWithoutLayout(lines...) , done above.
 			fmt.Printf("Marked %s at X=%.0f, Y=%.0f\n", closest.Pitch, noteX, closest.Y) // debugging log to terminal.
@@ -323,7 +293,8 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	// Instruction and feedback
 	instruction := widget.NewLabel(fmt.Sprintf("Click all %s notes on the Grand Staff", targetNoteLetter))
 	instruction.TextStyle = fyne.TextStyle{Bold: true}
-	instruction.Resize(fyne.NewSize(1000, 100))
+	// No Resize statement for instruction — VBox sets size based on text!
+
 	feedback := canvas.NewText("", color.Black)
 	feedback.TextSize = 24
 	feedback.TextStyle = fyne.TextStyle{Bold: true}
@@ -331,7 +302,7 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	// Define content container
 	content := container.NewVBox()
 
-	// Check button
+	// Check button — tallies player’s note placements.
 	var checkButton *widget.Button
 	checkButton = widget.NewButton("Check", func() {
 		correctCount := 0
@@ -377,12 +348,9 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 		feedback.Refresh()
 		content.Refresh()
 	})
-
-	// Check button—tallies player’s note placements.
-	checkButton.Resize(fyne.NewSize(200, 100)) // Check button’s footprint.
-	// ::: Success message: "Perfect! All %s notes found!" if all targets hit. (line 292)
-
-	// Reset button (aka New Game)—wipes slate clean for a fresh challenge.
+	// No Resize statement for checkButton — HBox in content dictates button size!
+	
+	// Reset button (aka New Game) — wipes slate clean for a fresh challenge.
 	resetButton := widget.NewButton("New Game", func() {
 		targetNoteLetter = []string{"C", "D", "E", "F", "G", "A", "B"}[rand.Intn(7)]
 		targetPositions = []NotePosition{}
@@ -402,8 +370,8 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 		staffContainer.Refresh()
 		content.Refresh()
 	})
-	resetButton.Resize(fyne.NewSize(200, 100)) // dimensions of "New Game" button.
-
+	// No Resize statement for resetButton — HBox in content dictates button size!
+	
 	// Populate content container
 	content.Objects = []fyne.CanvasObject{
 		instruction,
@@ -415,9 +383,9 @@ func main() { // ctrl-M to navigate to matching brace. main is some 300 lines lo
 	// Main layout
 	mainContainer := container.New(layout.NewVBoxLayout(), content)
 
-	// Set up window
-	myWindow.SetContent(mainContainer)
-	myWindow.ShowAndRun()
+	// Set up window, and run it
+	parentWindow.SetContent(mainContainer)
+	parentWindow.ShowAndRun()
 } // ::: end of main
 
 // TappableCanvas extends CanvasObject to catch and handle taps (mouse clicks). // TappableCanvas extends CanvasObject to snag and handle taps (mouse clicks galore)!
@@ -514,7 +482,6 @@ In Go, interfaces are implicit contracts — a set of method signatures a type m
 if a type has the methods, it satisfies the interface. Fyne leans heavily on this for its UI framework.
 
 Syntax:
-
 			type MyInterface interface {
 				Method1()
 				Method2(arg string) int
@@ -527,7 +494,6 @@ Fyne uses interfaces to define behaviors for UI elements. Here’s how they fit 
 fyne.CanvasObject:
 
 Definition:
-
 			type CanvasObject interface {
 				Size() fyne.Size
 				Resize(size fyne.Size)
@@ -542,7 +508,7 @@ Definition:
 Purpose: Anything drawable on the canvas—rectangles, lines, text, etc.
 
 Your Code:
-staffArea (a *canvas.Rectangle) implements this.
+	staffArea (a *canvas.Rectangle) implements this.
 
 Embedding fyne.CanvasObject in TappableCanvas means it inherits these methods (e.g., Resize(1000, 900)).
 
@@ -551,7 +517,6 @@ Why: Ensures staffAreaTapped can be sized, positioned, and drawn in staffContain
 fyne.Tappable:
 
 Definition:
-
 			type Tappable interface {
 				Tapped(*fyne.PointEvent)
 			}
@@ -559,7 +524,7 @@ Definition:
 Purpose: Makes an object respond to tap/click events (mouse or touch).
 
 Your Code:
-TappableCanvas implements this with:
+	TappableCanvas implements this with:
 
 			func (t *TappableCanvas) Tapped(e *fyne.PointEvent) {
 				if t.OnTapped != nil {
@@ -573,7 +538,7 @@ Why: Adds interactivity—without it, staffArea would just sit there, pretty but
 
 How They Work Together
 Embedding:
-TappableCanvas embeds fyne.CanvasObject, so it’s drawable (via staffArea).
+	TappableCanvas embeds fyne.CanvasObject, so it’s drawable (via staffArea).
 
 Adding Tapped() makes it Tappable too.
 
@@ -581,7 +546,7 @@ Result: A single type satisfying two interfaces—visual and interactive.
 
 Fyne’s Event Loop:
 When you tap the staff:
-Fyne checks if the clicked object implements Tappable.
+	Fyne checks if the clicked object implements Tappable.
 
 Finds staffAreaTapped (topmost in staffContainer).
 
@@ -605,12 +570,12 @@ fyne.Draggable:
 Dragged(*fyne.DragEvent)—could extend your game to drag notes!
 
 fyne.Focusable:
-FocusGained(), FocusLost()—for keyboard input (not used here).
+	FocusGained(), FocusLost()—for keyboard input (not used here).
 
 Why Interfaces?
-Loose Coupling: Fyne doesn’t care how TappableCanvas works—just that it has Tapped().
-Flexibility: Swap staffArea for a canvas.Circle—still works as a CanvasObject.
-Go Idiomatic: No inheritance mess—just compose behaviors via interfaces.
+	Loose Coupling: Fyne doesn’t care how TappableCanvas works—just that it has Tapped().
+	Flexibility: Swap staffArea for a canvas.Circle—still works as a CanvasObject.
+	Go Idiomatic: No inheritance mess—just compose behaviors via interfaces.
 
 */
 
